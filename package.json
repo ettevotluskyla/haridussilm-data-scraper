@@ -1,0 +1,10 @@
+{
+  "name": "evk-edu-data",
+  "version": "1.0.0",
+  "description": "Import data about schools into a Google Sheet",
+  "main": "index.js",
+  "repository": "git@github.com:axynos/evk-edu-data.git",
+  "author": "Silver Sten Kruus <silverkruus@gmail.com>",
+  "license": "SEE LICENSE IN LICENSE",
+  "private": true
+}
