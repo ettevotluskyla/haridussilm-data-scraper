@@ -1,5 +1,9 @@
+const schoolYears = ['05/06', '06/07', '07/08', '08/09', '09/10', '10/11',
+                     '11/12', '12/13', '13/14', '14/15', '15/16', '16/17',
+                     '17/18', '18/19', '19/20']
+
 // Normalizing the text
-function getText(linkText) {
+const getText = async (linkText) => {
   linkText = linkText.replace(/\r\n|\r/g, "\n");
   linkText = linkText.replace(/\ +/g, " ");
 
@@ -25,6 +29,10 @@ async function findByDiv(frame, linkString) {
   return null;
 }
 
+/*
+  Finds a div with the following text and clicks it.
+  After clicking waits for the right tab to be updated.
+ */
 const clickByText = async (frame, text) => {
   const el = await findByDiv(frame, text)
 
@@ -34,48 +42,14 @@ const clickByText = async (frame, text) => {
   ])
 }
 
-const scrollContainer = async frame => {
-  const schoolList = await frame.$x('//*[@id="42"]/div[2]/div')
+// frame = iframe to take actions in
+// school = the name of the school to search in
+const loadSchoolYearInfo = async (frame, school) => {
 
-  await frame.evaluate(async el => {
-    const cEvent = new Event('mousewheel');
-    cEvent.wheelDelta = -1000
-
-    await el.dispatchEvent(cEvent);
-
-  }, schoolList[0])
 }
 
-const getSchools = async frame => {
-  const schoolsElements = await frame.$x('//*[@id="42"]/div[2]/div/div[1]/div')
-
-  const schools =
-
-  await schoolsElements.map(async element => {
-    const title = await frame.evaluate(el => {
-      return el.getAttribute('title')
-    }, element)
-
-    return title
+const loadSchoolData = async (frame, schools) => {
+  await schools.forEach(async school => {
+    await loadSchoolYearInfo(frame, school)
   })
-
-  return Promise.all(schools)
 }
-
-const loadSchoolList = async frame => {
-  await clickByText(frame, 'Kooli nimi')
-
-  for (let i = 0; i < 35; i++) {
-    await scrollContainer(frame)
-    await frame.waitFor(500)
-  }
-
-  const schools = await getSchools(frame)
-
-  schools.forEach(school => console.log(school))
-
-
-  return schools
-}
-
-module.exports = loadSchoolList
