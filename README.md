@@ -1,6 +1,8 @@
 # evk-edu-data
 Import data about the number of students in each class for schools into a Google Sheet.
 
+Note: This is not meant for public use and the code is very sloppy, so at least for the time being, it has a very high chance of breaking. I'm still learning puppeteer, so the code is not high quality at all.
+
 
 ## Common issues
 ### Puppeteer asking for firewall permissions
