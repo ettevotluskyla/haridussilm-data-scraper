@@ -8,6 +8,7 @@
   "license": "SEE LICENSE IN LICENSE",
   "private": true,
   "dependencies": {
+    "googleapis": "39",
     "puppeteer": "^5.0.0"
   },
   "scripts": {
