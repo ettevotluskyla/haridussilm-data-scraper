@@ -1,52 +1,30 @@
-// Find a link in the left navigation tab by the text content
-const findByDiv = async (page, linkString) => {
-  const links = await page.$x('//*[@id="9"]/div[2]/div[1]/div')
+const clickXPath = require('../utils/clickXPath')
 
-  console.log(`Looking for div with content "${linkString}"...`)
-
-  for (let i = 0; i < links.length; i++) {
-    const textContent = await page.evaluate(link => link.textContent, links[i])
-
-    if (textContent == linkString) {
-      console.log(`Match found // textContent: ${textContent} / linkString: ${linkString}`);
-      return links[i]
-    }
-  }
-
-  // If no match found, return null
-  return null
-}
-
-/*
-  Finds a div with the following text and clicks it.
-  After clicking waits for the right tab to be updated.
- */
-const clickByText = async (page, text) => {
-  const el = await findByDiv(page, text)
-  //console.log('el ', el)
-
-  await Promise.all([
-    page.waitForXPath('//*[@id="9"]/div[2]/div[1]/div[1]'),
-    el.click()
-  ])
-}
-
-const scrollContainer = async page => {
+const scrollContainer = async (page, directionString, delta=1000) => {
   // Wait for the QVListContainer to show up before assigning to a variable
   await Promise.all([
     page.waitForXPath('//*[@id="42"]/div[2]/div')
   ])
 
+  const directionMultipliers = {
+    up: 1,
+    down: -1
+  }
+
+  const direction = directionMultipliers[directionString]
+
   // QVListContainer with event listener for 'mousewheel'
   const schoolList = await page.$x('//*[@id="42"]/div[2]/div')
+  const school = schoolList[0]
 
-  await page.evaluate(async el => {
+  await page.evaluate(async (el, delta, direction) => {
     const cEvent = new Event('mousewheel')
-    cEvent.wheelDelta = -1000
+
+    cEvent.wheelDelta = delta * direction
 
     await el.dispatchEvent(cEvent)
 
-  }, schoolList[0])
+  }, school, delta, direction)
 }
 
 const getSchoolNames = async page => {
@@ -65,14 +43,16 @@ const getSchoolNames = async page => {
 
 const loadSchoolNameList = async page => {
   await Promise.all([
-    clickByText(page, 'Kooli nimi'),
-    page.evaluate(el => el.textContent == 'Kooli nimi', await page.$x('//*[@id="42"]/div[1]/div[2]/div/div'))
+    clickXPath(page, `//*[@id="9"]/div[2]/div[1]/div[text() = 'Kooli nimi']`),
+    page.waitForXPath(`//*[@id="42"]/div[1]/div[2]/div/div[text() = 'Kooli nimi']`)
   ])
 
   console.log('Scrolling school list container to the bottom...')
-  for (let i = 0; i < 35; i++) {
-    await scrollContainer(page)
-    await page.waitFor(500)
+  // It seems like a combination of i < 30, deltaY = 1000, and 350ms delay works very well.
+  // Further testing is still needed though.
+  for (let i = 0; i < 30; i++) {
+    await scrollContainer(page, 'down', 1000)
+    await page.waitFor(350)
   }
 
   console.log('Loading names of all schools...')
