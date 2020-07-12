@@ -8,13 +8,23 @@ const loadClassData = require('../routines/haridussilm/loadClassData')
 const hsUrl = 'https://www.haridussilm.ee/QvAJAXZfc/opendoc_hm.htm?document=htm_avalik.qvw&host=QVS%40qlikview-pub&anonymous=true&sheet=SH_alus_yld_2'
 
 const fullRoutine = async () => {
+  const headless = args['headless']
+                 ? (args['headless'] == 'true' || args['headless'] == true)
+                 : false
+
   // Default to no sharding unless sharding argument is passed
-  let shouldShard = args['sharding'] ? args['sharding'] : false
+  const shouldShard = args['sharding']
+                    ? (args['sharding'] == 'true' || args['sharding'] == true)
+                    : false
+
+  if (headless) {
+    console.log('Starting scraper in headless mode.')
+  }
+
   if (shouldShard) {
     console.log('Starting scraper with sharding enabled.')
   }
 
-  const headless = false
   const browser = await puppeteer.launch({ 'headless': headless })
 
   // Create a new page if headless, use default about:blank page if not

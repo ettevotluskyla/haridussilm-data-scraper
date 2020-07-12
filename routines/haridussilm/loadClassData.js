@@ -1,4 +1,6 @@
 const clickXPath = require('../../utils/web-interaction/clickXPath')
+const simClickXPath = require('../../utils/web-interaction/simClickXPath')
+const wrappedWaitForNetworkIdle = require('../../utils/web-interaction/wrappedWaitForNetworkIdle')
 
 // List of school years to look for
 // Taken from HaridusSilm
@@ -23,56 +25,39 @@ const levels = {
   'G12': 'gümnaasium',
 }
 
-// Clicks in the middle of the provided element using the mouse
-const clickOnElement = async (page, xpath) => {
-  console.log(`Clicking (full sim): ${xpath}`)
-  const element = await page.$x(xpath)
-
-  const bounds = await page.evaluate(el => {
-    const { top, left, width, height } = el.getBoundingClientRect()
-    return { top, left, width, height }
-  }, element[0])
-
-  // Use given position or default to center
-  const xOffset = bounds.width / 2;
-  const yOffset = bounds.height / 2;
-
-  await page.waitFor(100)
-  await page.mouse.click(bounds.left + xOffset, bounds.top + yOffset)
-}
-
 // page = frame to take actions in
 // school = the name of the school to search in
 const loadSchoolYearInfo = async (page, school, index) => {
-  const xpath = `//*[@id="42"]/div[2]/div/div[1]/div[@title = '${school}']`
+  // Using double quotes here to escape potential single quotes in the school name
+  const xpath = `//*[@id="42"]/div[2]/div/div[1]/div[@title = "${school}"]`
 
   // Click the search icon
-  await Promise.all([
-    clickOnElement(page, `//*[@id="42"]/div[1]/div[1]`),
-    page.waitFor(500)
+  await wrappedWaitForNetworkIdle(page, [
+    simClickXPath(page, `//*[@id="42"]/div[1]/div[1]`),
+    page.waitForXPath(`//*[@id="42"]/div[1]/div[1]`)
   ])
 
   // Type in the name of the school
   console.log(`Typing: ${school}`)
-  await Promise.all([
-    await page.keyboard.type(school, { delay: 0 }),
-    // Wait for search to complete
-    page.waitFor(500)
+  await wrappedWaitForNetworkIdle(page, [
+    page.keyboard.type(school, { delay: 0 }),
+    // Wait for element to show up in list
+    page.waitForXPath(`//*[@id="42"]/div[2]/div/div[1]/div[@title = "${school}"]`)
   ])
 
   // Select the school from the search results
-  await Promise.all([
-    clickOnElement(page, xpath),
+  await wrappedWaitForNetworkIdle(page, [
+    simClickXPath(page, xpath),
 
-    // Wait for page to update
+    // Wait for page to update in addition to having no active requests
     page.waitFor(2000)
   ])
 
   // Unselect the school from the school list
-  await Promise.all([
-    clickOnElement(page, xpath),
+  await wrappedWaitForNetworkIdle(page, [
+    simClickXPath(page, xpath),
 
-    // Wait for page to update
+    // Wait for page to update in addition to having no active requests
     page.waitFor(1000)
   ])
 }
