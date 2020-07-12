@@ -2,7 +2,7 @@
   "name": "evk-edu-data",
   "version": "1.0.0",
   "description": "Import data about schools into a Google Sheet",
-  "main": "index.js",
+  "main": "scripts/fullRoutine.js",
   "repository": "git@github.com:axynos/evk-edu-data.git",
   "author": "Silver Sten Kruus <silver@ettevotluskyla.ee>",
   "license": "SEE LICENSE IN LICENSE",
@@ -12,6 +12,9 @@
     "puppeteer": "^5.0.0"
   },
   "scripts": {
-    "start": "node index.js"
+    "start": "node scripts/fullRoutine.js",
+    "load-data": "node scripts/loadData.js",
+    "upload-data": "node scripts/uploadData.js",
+    "clear-cache": "node scripts/clearCache.js"
   }
 }

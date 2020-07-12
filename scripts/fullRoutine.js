@@ -1,17 +1,12 @@
-// Google Sheets API implementtion
-// https://developers.google.com/sheets/api/quickstart/nodejs
-
 const puppeteer = require('puppeteer')
-const loadSchoolNameList = require('./actions/loadSchoolNameList')
-const loadSchoolData = require('./actions/loadSchoolData')
 
-// Wrapped in an iframe
-// const hsUrl = 'https://haridussilm.ee/?leht=alus_yld_2'
+const loadSchoolNameList = require('../routines/haridussilm/loadSchoolNameList')
+const loadSchoolData = require('../routines/haridussilm/loadSchoolData')
 
-// Content of embedded iframe at haridussilm.ee
+// URL of embedded iframe at haridussilm.ee
 const hsUrl = 'https://www.haridussilm.ee/QvAJAXZfc/opendoc_hm.htm?document=htm_avalik.qvw&host=QVS%40qlikview-pub&anonymous=true&sheet=SH_alus_yld_2'
 
-const main = async () => {
+const fullRoutine = async () => {
   const headless = false
   const browser = await puppeteer.launch({ 'headless': headless })
 
@@ -38,7 +33,7 @@ const main = async () => {
   console.log(`Loading school data for ${schoolNames.length} schools.`)
   const schoolData = await loadSchoolData(page, schoolNames)
 
-
   // await browser.close()
 }
-main()
+
+fullRoutine()

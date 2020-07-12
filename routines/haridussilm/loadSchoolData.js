@@ -1,4 +1,4 @@
-const clickXPath = require('../utils/clickXPath')
+const clickXPath = require('../../utils/web-interaction/clickXPath')
 
 // List of school years to look for
 // Taken from HaridusSilm
@@ -39,33 +39,6 @@ const clickOnElement = async (page, xpath) => {
 
   await page.waitFor(100)
   await page.mouse.click(bounds.left + xOffset, bounds.top + yOffset)
-}
-
-const scrollContainer = async (page, directionString, delta=1000) => {
-  // Wait for the QVListContainer to show up before assigning to a variable
-  await Promise.all([
-    page.waitForXPath('//*[@id="42"]/div[2]/div')
-  ])
-
-  const directionMultipliers = {
-    up: 1,
-    down: -1
-  }
-
-  const direction = directionMultipliers[directionString]
-
-  // QVListContainer with event listener for 'mousewheel'
-  const schoolList = await page.$x('//*[@id="42"]/div[2]/div')
-  const school = schoolList[0]
-
-  await page.evaluate(async (el, delta, direction) => {
-    const cEvent = new Event('mousewheel')
-
-    cEvent.wheelDelta = delta * direction
-
-    await el.dispatchEvent(cEvent)
-
-  }, school, delta, direction)
 }
 
 // page = frame to take actions in
