@@ -1,7 +1,7 @@
 const puppeteer = require('puppeteer')
 
 const loadSchoolNameList = require('../routines/haridussilm/loadSchoolNameList')
-const loadSchoolData = require('../routines/haridussilm/loadSchoolData')
+const loadClassData = require('../routines/haridussilm/loadClassData')
 
 // URL of embedded iframe at haridussilm.ee
 const hsUrl = 'https://www.haridussilm.ee/QvAJAXZfc/opendoc_hm.htm?document=htm_avalik.qvw&host=QVS%40qlikview-pub&anonymous=true&sheet=SH_alus_yld_2'
@@ -31,7 +31,7 @@ const fullRoutine = async () => {
 
   // Loads school data based on school name list
   console.log(`Loading school data for ${schoolNames.length} schools.`)
-  const schoolData = await loadSchoolData(page, schoolNames)
+  const schoolData = await loadClassData(page, schoolNames)
 
   // await browser.close()
 }

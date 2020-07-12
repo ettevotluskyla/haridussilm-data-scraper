@@ -77,11 +77,11 @@ const loadSchoolYearInfo = async (page, school, index) => {
   ])
 }
 
-const loadSchoolData = async (page, schools) => {
+const loadClassData = async (page, schools) => {
   for (let i = 0; i < schools.length; i++) {
     await loadSchoolYearInfo(page, schools[i], i)
     await page.waitFor(1000)
   }
 }
 
-module.exports = loadSchoolData
+module.exports = loadClassData
