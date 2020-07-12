@@ -67,7 +67,7 @@ const scrollContainer = async (page, elementXPath, opts) => {
   let waitPromises = []
 
   if (options.waitOpts.waitEndDelay) {
-    waitPromises = waitPromises.concat(page.waitForXPath(options.waitOpts.waitEndDelay))
+    waitPromises = waitPromises.concat(page.waitFor(options.waitOpts.waitEndDelay))
   }
 
   if (options.waitOpts.waitEndXPath) {
