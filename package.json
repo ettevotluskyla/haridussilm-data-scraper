@@ -4,7 +4,7 @@
   "description": "Import data about schools into a Google Sheet",
   "main": "index.js",
   "repository": "git@github.com:axynos/evk-edu-data.git",
-  "author": "Silver Sten Kruus <silverkruus@gmail.com>",
+  "author": "Silver Sten Kruus <silver@ettevotluskyla.ee>",
   "license": "SEE LICENSE IN LICENSE",
   "private": true,
   "dependencies": {
