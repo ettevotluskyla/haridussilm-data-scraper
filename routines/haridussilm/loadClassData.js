@@ -25,12 +25,8 @@ const levels = {
   'G12': 'gümnaasium',
 }
 
-// page = frame to take actions in
-// school = the name of the school to search in
-const loadSchoolYearInfo = async (page, school, index) => {
-  // Using double quotes here to escape potential single quotes in the school name
-  const xpath = `//*[@id="42"]/div[2]/div/div[1]/div[@title = "${school}"]`
-
+// Click the search icon and type the name of the school.
+const searchList = async (page, school) => {
   // Click the search icon
   await wrappedWaitForNetworkIdle(page, [
     simClickXPath(page, `//*[@id="42"]/div[1]/div[1]`),
@@ -42,18 +38,21 @@ const loadSchoolYearInfo = async (page, school, index) => {
   await wrappedWaitForNetworkIdle(page, [
     page.keyboard.type(school, { delay: 0 }),
     // Wait for element to show up in list
-    page.waitForXPath(`//*[@id="42"]/div[2]/div/div[1]/div[@title = "${school}"]`)
+    page.waitForXPath(`//*[@id="42"]/div[2]/div/div[1]/div[@title = "${school}"]`),
+
+    // Wait for page to update
+    page.waitFor(750)
   ])
+}
+
+// Select school in the school list
+const selectSchool = async (page, school) => {
+  // Using double quotes here to escape potential single quotes in the school name
+  const xpath = `//*[@id="42"]/div[2]/div/div[1]/div[@title = "${school}"]`
+
+  await searchList(page, school)
 
   // Select the school from the search results
-  await wrappedWaitForNetworkIdle(page, [
-    simClickXPath(page, xpath),
-
-    // Wait for page to update in addition to having no active requests
-    page.waitFor(2000)
-  ])
-
-  // Unselect the school from the school list
   await wrappedWaitForNetworkIdle(page, [
     simClickXPath(page, xpath),
 
@@ -62,10 +61,40 @@ const loadSchoolYearInfo = async (page, school, index) => {
   ])
 }
 
+// Deselect school in the school list
+// Setting research to true will reenter the school name in the search box before
+// clicking the item. Defaults to false to improve performance.
+const deselectSchool = async (page, school, research=false) => {
+  // Using double quotes here to escape potential single quotes in the school name
+  const xpath = `//*[@id="42"]/div[2]/div/div[1]/div[@title = "${school}"]`
+
+  if (research) {
+    await searchList(page, school)
+  }
+
+  // Unselect the school from the school list
+  await wrappedWaitForNetworkIdle(page, [
+    simClickXPath(page, xpath),
+
+    // Wait for page to update in addition to having no active requests
+    page.waitFor(750)
+  ])
+}
+
+// page = frame to take actions in
+// school = the name of the school to search in
+const loadSchoolYearInfo = async (page, school) => {
+  await selectSchool(page, school)
+
+  // Do things
+
+  await deselectSchool(page, school)
+}
+
 const loadClassData = async (page, schools) => {
   for (let i = 0; i < schools.length; i++) {
     await loadSchoolYearInfo(page, schools[i], i)
-    await page.waitFor(1000)
+    await page.waitFor(0)
   }
 }
 
