@@ -1,4 +1,5 @@
 const puppeteer = require('puppeteer')
+const args = require('minimist')(process.argv.slice(2))
 
 const loadSchoolNameList = require('../routines/haridussilm/loadSchoolNameList')
 const loadClassData = require('../routines/haridussilm/loadClassData')
@@ -7,6 +8,12 @@ const loadClassData = require('../routines/haridussilm/loadClassData')
 const hsUrl = 'https://www.haridussilm.ee/QvAJAXZfc/opendoc_hm.htm?document=htm_avalik.qvw&host=QVS%40qlikview-pub&anonymous=true&sheet=SH_alus_yld_2'
 
 const fullRoutine = async () => {
+  // Default to no sharding unless sharding argument is passed
+  let shouldShard = args['sharding'] ? args['sharding'] : false
+  if (shouldShard) {
+    console.log('Starting scraper with sharding enabled.')
+  }
+
   const headless = false
   const browser = await puppeteer.launch({ 'headless': headless })
 
