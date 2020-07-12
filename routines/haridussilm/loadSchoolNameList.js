@@ -2,10 +2,10 @@ const clickXPath = require('../../utils/web-interaction/clickXPath')
 const scrollContainer = require('../../utils/web-interaction/scrollContainer')
 
 const getSchoolNames = async page => {
-  const schoolElements = await page.$x('//*[@id="144"]/div[2]/div/div[1]/div/div[2]/div[2]')
+  const schoolElements = await page.$x('//*[@id="42"]/div[2]/div/div[1]/div/div[2]/div[2]')
 
   const schoolNames = await schoolElements.map(async element => {
-    const title = await page.evaluate(el => el.textContent, element)
+    const title = await page.evaluate(el => {return el.textContent}, element)
 
     return title
   })
@@ -35,7 +35,6 @@ const loadSchoolNameList = async page => {
     waitEndDelay: 250
   })
 
-  console.log('Loading names of all schools...')
   const schoolNames = await getSchoolNames(page)
   console.log(`Loaded names of ${schoolNames.length} schools`)
 
