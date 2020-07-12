@@ -16,4 +16,4 @@ The solution is to sign the package yourself, which can be done with the command
 
 Run the following command, where "mac-version" is replaced with the version of chromium downloaded.
 
-```alias sign_puppeteer="sudo codesign --force --deep --sign - ./node_modules/puppeteer/.local-chromium/mac-version/chrome-mac/Chromium.app"```
+```sudo codesign --force --deep --sign - ./node_modules/puppeteer/.local-chromium/mac-version/chrome-mac/Chromium.app```
