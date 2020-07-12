@@ -8,6 +8,7 @@
   "license": "SEE LICENSE IN LICENSE",
   "private": true,
   "dependencies": {
+    "cli-progress": "^3.8.2",
     "googleapis": "39",
     "minimist": "^1.2.5",
     "puppeteer": "^5.0.0"
