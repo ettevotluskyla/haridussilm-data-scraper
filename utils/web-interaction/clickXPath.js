@@ -13,7 +13,9 @@ const clickXPath = async (page, xpath, waitOpts) => {
     }
 
     if (waitOpts.waitXPath) {
-      waitPromises = waitPromises.concat(page.waitForXPath(waitOpts.waitXPath))
+      waitPromises = waitPromises.concat(
+        page.waitForXPath(waitOpts.waitXPath, { visible: true })
+      )
     }
   }
 
