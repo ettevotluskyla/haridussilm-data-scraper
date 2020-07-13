@@ -3,6 +3,7 @@ const args = require('minimist')(process.argv.slice(2))
 
 const loadSchoolNameList = require('../routines/haridussilm/loadSchoolNameList')
 const loadClassData = require('../routines/haridussilm/loadClassData')
+const createShards = require('../routines/sharding/createShards')
 
 // URL of embedded iframe at haridussilm.ee
 const hsUrl = 'https://www.haridussilm.ee/QvAJAXZfc/opendoc_hm.htm?document=htm_avalik.qvw&host=QVS%40qlikview-pub&anonymous=true&sheet=SH_alus_yld_2'
@@ -46,9 +47,11 @@ const fullRoutine = async () => {
 
   await page.waitFor(250)
 
+  const shards = await createShards(browser, schoolNames, 30)
+
   // Loads school data based on school name list
   console.log(`Loading school data for ${schoolNames.length} schools.`)
-  const schoolData = await loadClassData(page, schoolNames)
+  //const schoolData = await loadClassData(page, schoolNames)
 
   // await browser.close()
 }
