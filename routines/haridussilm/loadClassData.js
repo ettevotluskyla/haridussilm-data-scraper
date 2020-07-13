@@ -1,6 +1,7 @@
 const clickXPath = require('../../utils/web-interaction/clickXPath')
 const simClickXPath = require('../../utils/web-interaction/simClickXPath')
 const wrappedWaitForNetworkIdle = require('../../utils/web-interaction/wrappedWaitForNetworkIdle')
+const switchToMenu = require('../../utils/web-interaction/switchToMenu')
 
 // List of school years to look for
 // Taken from HaridusSilm
@@ -81,18 +82,55 @@ const deselectSchool = async (page, school, research=false) => {
   ])
 }
 
+const getAvailableClasses = async (page, school) => {
+  const activeClassName = 'QvOptional_LED_CHECK_363636'
+  const inactiveClassName = 'QvExcluded_LED_CHECK_363636'
+  const classes = Object.keys(levels)
+
+  let availableClasses = []
+
+  for (let i = 0; i < classes.length; i++) {
+    // Look for non-disabled elements in the list
+    const classID = classes[i]
+    const xpath = `//*[@id="48"]/div[2]/div/div[1]/div[@title = '${classID}' and @class = '${activeClassName}']`
+    const classElement = await page.$x(xpath)
+
+    if (classElement.length > 0) {
+      availableClasses = availableClasses.concat(classes[i])
+    }
+  }
+
+  //console.log(availableClasses)
+  console.log(`Found classes ${availableClasses.toString()} for ${school}`)
+  return availableClasses
+}
+
+const selectClass = async (page, classID) => {
+
+}
+
+const deselectClass = async (page, classID) => {
+
+}
+
 // page = frame to take actions in
 // school = the name of the school to search in
 const loadSchoolYearInfo = async (page, school) => {
   await selectSchool(page, school)
 
-  // Do things
+  await switchToMenu(page, 'Klass')
+  const availableClasses = await getAvailableClasses(page, school)
 
+  await switchToMenu(page, 'Kooli nimi')
   await deselectSchool(page, school)
 }
 
 const loadClassData = async (page, schools) => {
-  for (let i = 0; i < schools.length; i++) {
+  const upperBound = true ? schools.length : 0
+
+  for (let i = 0; i < upperBound; i++) {
+    console.log('------------------------------------')
+    console.log(schools[i].toUpperCase())
     await loadSchoolYearInfo(page, schools[i], i)
     await page.waitFor(0)
   }

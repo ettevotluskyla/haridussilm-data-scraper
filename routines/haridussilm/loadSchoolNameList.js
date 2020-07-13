@@ -1,5 +1,6 @@
 const clickXPath = require('../../utils/web-interaction/clickXPath')
 const scrollContainer = require('../../utils/web-interaction/scrollContainer')
+const switchToMenu = require('../../utils/web-interaction/switchToMenu')
 
 const getSchoolNames = async page => {
   const schoolElements = await page.$x('//*[@id="42"]/div[2]/div/div[1]/div/div[2]/div[2]')
@@ -16,8 +17,7 @@ const getSchoolNames = async page => {
 const loadSchoolNameList = async page => {
   const schoolListTitle = 'Kooli nimi'
 
-  Promise.resolve(clickXPath(page, `//*[@id="9"]/div[2]/div[1]/div[text() = '${schoolListTitle}']`,
-    { waitXPath: `//*[@id="42"]/div[1]/div[2]/div/div[text() = '${schoolListTitle}']`}))
+  await switchToMenu(page, schoolListTitle)
 
   // Element (list) containing all the names of the schools.
   const schoolListXpath = '//*[@id="42"]/div[2]/div'
@@ -29,7 +29,7 @@ const loadSchoolNameList = async page => {
   await scrollContainer(page, schoolListXpath, {
     direction: 'down',
     delta: 1000,
-    scrollCount: 30,
+    scrollCount: 0,
     title: schoolListTitle,
     waitBuffer: 350,
     waitEndDelay: 250
