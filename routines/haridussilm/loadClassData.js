@@ -129,6 +129,34 @@ const deselectClass = async (page, classID) => {
   ])
 }
 
+const getAvailableSchoolYears = async (page, school, classID) => {
+  const xpath = `//*[@id="12"]/div[2]/div[@class = 'QvGrid']/div[1]/div[2]/div/div/div/div[not(@class) and text()]`
+
+  const elements = await page.$x(xpath)
+  const schoolYears = elements.map(element => {
+    return page.evaluate(el => el.textContent, element)
+  })
+
+  console.log(`Found ${elements.length} school years for class ${classID} in ${school}`)
+
+  return Promise.all(schoolYears)
+}
+
+const getStudentsForClass = async (page, school, classID) => {
+  // (position() mod 2)=1 is the equivalent of nth-child(odd)
+  // https://en.wikibooks.org/wiki/XPath/CSS_Equivalents#:nth-child(odd)_query
+  const xpath = `//*[@id="12"]/div[2]/div[@class = 'QvGrid']/div[1]/div[5]/div/div[(position() mod 2)=1]/div/div[not(@class) and text()]`
+
+  const elements = await page.$x(xpath)
+  const students = elements.map(element => {
+    return page.evaluate(el => el.textContent, element)
+  })
+
+  console.log(`Obtained ${elements.length} years of student data for class ${classID} in ${school}`)
+
+  return Promise.all(students)
+}
+
 // page = frame to take actions in
 // school = the name of the school to search in
 const loadSchoolYearInfo = async (page, school) => {
@@ -140,6 +168,11 @@ const loadSchoolYearInfo = async (page, school) => {
   for (let i = 0; i < availableClasses.length; i++) {
     await selectClass(page, availableClasses[i])
 
+    const years = await getAvailableSchoolYears(page, school, availableClasses[i])
+    const students = await getStudentsForClass(page, school, availableClasses[i])
+
+    console.log(students);
+
     await deselectClass(page, availableClasses[i])
   }
 
@@ -148,6 +181,7 @@ const loadSchoolYearInfo = async (page, school) => {
 }
 
 const loadClassData = async (page, schools) => {
+  // A killswitch for the school loop
   const upperBound = true ? schools.length : 0
 
   for (let i = 0; i < upperBound; i++) {

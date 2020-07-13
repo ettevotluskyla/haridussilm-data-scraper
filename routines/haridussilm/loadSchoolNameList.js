@@ -3,12 +3,9 @@ const scrollContainer = require('../../utils/web-interaction/scrollContainer')
 const switchToMenu = require('../../utils/web-interaction/switchToMenu')
 
 const getSchoolNames = async page => {
-  const schoolElements = await page.$x('//*[@id="42"]/div[2]/div/div[1]/div/div[2]/div[2]')
-
-  const schoolNames = await schoolElements.map(async element => {
-    const title = await page.evaluate(el => {return el.textContent}, element)
-
-    return title
+  const elements = await page.$x('//*[@id="42"]/div[2]/div/div[1]/div/div[2]/div[2]')
+  const schoolNames = elements.map(element => {
+    return page.evaluate(el => {return el.textContent}, element)
   })
 
   return Promise.all(schoolNames)
