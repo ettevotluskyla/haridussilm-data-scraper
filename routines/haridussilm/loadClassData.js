@@ -106,11 +106,27 @@ const getAvailableClasses = async (page, school) => {
 }
 
 const selectClass = async (page, classID) => {
+  const xpath = `//*[@id="48"]/div[2]/div/div[1]/div/div/div[text() = '${classID}']`
 
+  // Select the class from the list
+  await wrappedWaitForNetworkIdle(page, [
+    simClickXPath(page, xpath),
+
+    // Wait for page to update in addition to having no active requests
+    page.waitFor(1000)
+  ])
 }
 
 const deselectClass = async (page, classID) => {
+  const xpath = `//*[@id="48"]/div[2]/div/div[1]/div/div/div[text() = '${classID}']`
 
+  // Select the class from the list
+  await wrappedWaitForNetworkIdle(page, [
+    simClickXPath(page, xpath),
+
+    // Wait for page to update in addition to having no active requests
+    page.waitFor(750)
+  ])
 }
 
 // page = frame to take actions in
@@ -120,6 +136,12 @@ const loadSchoolYearInfo = async (page, school) => {
 
   await switchToMenu(page, 'Klass')
   const availableClasses = await getAvailableClasses(page, school)
+
+  for (let i = 0; i < availableClasses.length; i++) {
+    await selectClass(page, availableClasses[i])
+
+    await deselectClass(page, availableClasses[i])
+  }
 
   await switchToMenu(page, 'Kooli nimi')
   await deselectSchool(page, school)
@@ -131,8 +153,10 @@ const loadClassData = async (page, schools) => {
   for (let i = 0; i < upperBound; i++) {
     console.log('------------------------------------')
     console.log(schools[i].toUpperCase())
+    console.time(`Collecting data for ${schools[i]} took: `)
     await loadSchoolYearInfo(page, schools[i], i)
     await page.waitFor(0)
+    console.timeEnd(`Collecting data for ${schools[i]} took: `)
   }
 }
 
