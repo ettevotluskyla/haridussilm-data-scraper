@@ -9,18 +9,17 @@ const createChunks = (array, chunkSize) => {
     return chunks;
 }
 
-const createShards = async (browser, schoolNames, shardSize=30) => {
+const createShards = async (schoolNames, shardSize=30) => {
   let shards = []
 
   const chunkedNames = createChunks(schoolNames, shardSize)
 
   for (let i = 0; i < chunkedNames.length; i++) {
-    const page = await browser.newPage()
     shards[`${i}`] = {
-      done: false,
-      page: page,
       schools: chunkedNames[i]
     }
+
+    console.log(chunkedNames[i])
   }
 
   return shards

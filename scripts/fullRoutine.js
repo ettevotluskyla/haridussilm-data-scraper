@@ -2,13 +2,12 @@ const puppeteer = require('puppeteer')
 const args = require('minimist')(process.argv.slice(2))
 
 const loadSchoolNameList = require('../routines/haridussilm/loadSchoolNameList')
-const loadClassData = require('../routines/haridussilm/loadClassData')
+const loadSchoolData = require('../routines/haridussilm/loadSchoolData')
 const createShards = require('../routines/sharding/createShards')
+const createShardCluster = require('../routines/sharding/createShardCluster')
+const runShard = require('../routines/sharding/runShard')
 
-// URL of embedded iframe at haridussilm.ee
-const hsUrl = 'https://www.haridussilm.ee/QvAJAXZfc/opendoc_hm.htm?document=htm_avalik.qvw&host=QVS%40qlikview-pub&anonymous=true&sheet=SH_alus_yld_2'
-
-const fullRoutine = async () => {
+const options = (async _ => {
   const headless = args['headless']
                  ? (args['headless'] == 'true' || args['headless'] == true)
                  : false
@@ -18,14 +17,39 @@ const fullRoutine = async () => {
                     ? (args['sharding'] == 'true' || args['sharding'] == true)
                     : false
 
-  if (headless) {
-    console.log('Starting scraper in headless mode.')
-  }
+  const verbose = args['verbose']
+                ? (args['verbose'] == 'true' || args['verbose'] == true)
+                : false
 
+  const monitor = args['monitor']
+                ? (args['monitor'] == 'true' || args['monitor'] == true)
+                : false
+
+  // Shard size gets overwritten later if sharding is disabled
+  const shardSize = args['shardSize'] ? args['shardSize'] : 15
+
+  let maxConcurrency
   if (shouldShard) {
-    console.log('Starting scraper with sharding enabled.')
+    maxConcurrency = args['maxConcurrency'] ? args['maxConcurrency'] : 5
+  } else {
+    maxConcurrency = 1
   }
 
+  const customOptions = {
+    headless: headless,
+    shouldShard: shouldShard,
+    verbose: verbose,
+    monitor: monitor,
+    shardSize: shardSize,
+    maxConcurrency: maxConcurrency
+  }
+
+  process.customOptions = customOptions
+
+  return customOptions
+})()
+
+const initPuppeteer = async headless => {
   const browser = await puppeteer.launch({ 'headless': headless })
 
   // Create a new page if headless, use default about:blank page if not
@@ -37,23 +61,36 @@ const fullRoutine = async () => {
     page = pages[0]
   }
 
-  // Wait for page load by looking at # of active network connections
-  console.log(`Loading page ${hsUrl}`)
-  await page.goto(hsUrl, { waitUntil: 'networkidle0' })
-  console.log(`Loaded`)
+  return { browser, page }
+}
+
+const fullRoutine = async _ => {
+  const { headless, shouldShard } = await options
+
+  /*
+  if (headless) {
+    console.log('Starting scraper in headless mode.')
+  }
+
+  if (shouldShard) {
+    console.log('Starting scraper with sharding enabled.')
+  }
+  */
+
+  console.log('Starting with options:\n')
+  console.log(await options)
+
+  const { browser, page } = await initPuppeteer(headless)
 
   // Loads the whole list of school names from the site
   const schoolNames = await loadSchoolNameList(page)
 
   await page.waitFor(250)
 
-  const shards = await createShards(browser, schoolNames, 30)
-
-  // Loads school data based on school name list
+  const shardSize = shouldShard ? process.customOptions.shardSize : schoolNames.length
+  const shards = await createShards(schoolNames, process.customOptions.shardSize)
   console.log(`Loading school data for ${schoolNames.length} schools.`)
-  //const schoolData = await loadClassData(page, schoolNames)
-
-  // await browser.close()
+  const shardCluster = await createShardCluster(shards)
 }
 
 fullRoutine()

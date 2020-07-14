@@ -3,13 +3,17 @@ const findByTextContent = async (page, elXPath, searchString) => {
   // Left navigation tab element containing links
   const links = await page.$x(elXPath)
 
-  console.log(`Looking for div with content "${searchString}"...`)
+  if(process.customOptions.verbose) {
+    console.log(`Looking for div with content "${searchString}"...`)
+  }
 
   for (let i = 0; i < links.length; i++) {
     const textContent = await page.evaluate(link => link.textContent, links[i])
 
     if (textContent == searchString) {
-      console.log(`Match found // textContent: ${textContent} / linkString: ${searchString}`);
+      if(process.customOptions.verbose) {
+        console.log(`Match found // textContent: ${textContent} / linkString: ${searchString}`)
+      }
       return links[i]
     }
   }

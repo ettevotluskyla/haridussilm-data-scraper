@@ -2,6 +2,9 @@ const clickXPath = require('../../utils/web-interaction/clickXPath')
 const scrollContainer = require('../../utils/web-interaction/scrollContainer')
 const switchToMenu = require('../../utils/web-interaction/switchToMenu')
 
+// URL of embedded iframe at haridussilm.ee
+const hsUrl = 'https://www.haridussilm.ee/QvAJAXZfc/opendoc_hm.htm?document=htm_avalik.qvw&host=QVS%40qlikview-pub&anonymous=true&sheet=SH_alus_yld_2'
+
 const getSchoolNames = async page => {
   const elements = await page.$x('//*[@id="42"]/div[2]/div/div[1]/div/div[2]/div[2]')
   const schoolNames = elements.map(element => {
@@ -12,6 +15,17 @@ const getSchoolNames = async page => {
 }
 
 const loadSchoolNameList = async page => {
+  // Wait for page load by looking at # of active network connections
+  if(process.customOptions.verbose) {
+    console.log(`Loading page ${hsUrl}`)
+  }
+
+  await page.goto(hsUrl, { waitUntil: 'networkidle0' })
+
+  if(process.customOptions.verbose) {
+    console.log(`Loaded`)
+  }
+
   const schoolListTitle = 'Kooli nimi'
 
   await switchToMenu(page, schoolListTitle)
@@ -26,14 +40,19 @@ const loadSchoolNameList = async page => {
   await scrollContainer(page, schoolListXpath, {
     direction: 'down',
     delta: 1000,
-    scrollCount: 30,
+    scrollCount: 0,
     title: schoolListTitle,
-    waitBuffer: 350,
+    waitBuffer: 0,
     waitEndDelay: 250
   })
 
   const schoolNames = await getSchoolNames(page)
-  console.log(`Loaded names of ${schoolNames.length} schools`)
+  if(process.customOptions.verbose) {
+    console.log(`Loaded names of ${schoolNames.length} schools`)
+  }
+
+  await page.close()
+  await page.browser().close()
 
   return schoolNames
 }

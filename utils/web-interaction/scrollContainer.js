@@ -22,7 +22,10 @@ const scrollContainer = async (page, elementXPath, opts) => {
 
   // In case title is undefined, exclude it from the logs.
   const logTitle = options.title ? `'${options.title}' ` : ''
-  console.log(`Started scrolling ${logTitle}container${(schoolListArray.length > 1) ? '(s)' : ''}.`)
+  
+  if(process.customOptions.verbose) {
+    console.log(`Started scrolling ${logTitle}container${(schoolListArray.length > 1) ? '(s)' : ''}.`)
+  }
 
   // The scroll event's direction is determined by the pos/neg direction
   // of the provided delta, so the direction string is mapped
@@ -80,7 +83,9 @@ const scrollContainer = async (page, elementXPath, opts) => {
     ...waitPromises
   ])
 
-  console.log(`Finished scrolling ${logTitle}container${(schoolListArray.length > 1) ? '(s)' : ''}.`)
+  if(process.customOptions.verbose) {
+    console.log(`Finished scrolling ${logTitle}container${(schoolListArray.length > 1) ? '(s)' : ''}.`)
+  }
 }
 
 module.exports = scrollContainer
