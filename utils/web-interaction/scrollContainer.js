@@ -1,3 +1,5 @@
+const wrappedWaitForNetworkIdle = require('../../utils/web-interaction/wrappedWaitForNetworkIdle')
+
 // Sends simulated scroll events to all elements with the provided xpath.
 const scrollContainer = async (page, elementXPath, opts) => {
   // Wait for the QvListContainer to show up before assigning to a variable
@@ -52,7 +54,7 @@ const scrollContainer = async (page, elementXPath, opts) => {
 
       }, schoolList, delta, direction)
 
-      await Promise.all([
+      await wrappedWaitForNetworkIdle(page, [
         scrollPromise,
         page.waitFor(options.waitOpts.waitBuffer)
       ])

@@ -51,7 +51,9 @@ const selectSchool = async (page, school) => {
   // Using double quotes here to escape potential single quotes in the school name
   const xpath = `//*[@id="42"]/div[2]/div/div[1]/div[@title = "${school}"]`
 
-  await searchList(page, school)
+  await wrappedWaitForNetworkIdle(page, [
+    searchList(page, school)
+  ])
 
   // Select the school from the search results
   await wrappedWaitForNetworkIdle(page, [
@@ -70,7 +72,9 @@ const deselectSchool = async (page, school, research=false) => {
   const xpath = `//*[@id="42"]/div[2]/div/div[1]/div[@title = "${school}"]`
 
   if (research) {
-    await searchList(page, school)
+    await wrappedWaitForNetworkIdle(page, [
+      searchList(page, school)
+    ])
   }
 
   // Unselect the school from the school list
