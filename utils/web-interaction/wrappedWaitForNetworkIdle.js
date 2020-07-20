@@ -1,48 +1,59 @@
 // Workaround for wrapping promises that need to wait for network activity
 // that isn't a result of navigation to end before continuing.
 //
-// Slightly modified implementation based on this GitHub answer:
+// Modified implementation based on these GitHub answers:
 // https://github.com/puppeteer/puppeteer/issues/1278#issuecomment-638524079
+// https://github.com/puppeteer/puppeteer/issues/5328#issuecomment-622089722
 
-async function wrappedWaitForNetworkIdle(page, promises) {
+// Wait for network to be idle
+// That means that no new requests have been made in the past 500 ms.
+// Default timeout is 15 s, throws error if that ends before network idle.
+const waitForNetworkIdle = async (page, pollRate = 500, timeout = 15*1000, maxInflightRequests = 0) => {
+  let inflightRequests
+  const onRequestStarted = _ => (inflightRequests = inflightRequests + 1)
+  const onRequestFinished = _ => (inflightRequests = inflightRequests - 1)
 
-    waitForNetworkIdle = function (page, timeout, maxInflightRequests = 0) {
-        page.on('request', onRequestStarted);
-        page.on('requestfinished', onRequestFinished);
-        page.on('requestfailed', onRequestFinished);
+  page.on('request', onRequestStarted)
+  page.on('requestfailed', onRequestFinished)
+  page.on('requestfinished', onRequestFinished)
 
-        let inflight = 0;
-        let fulfill;
-        let promise = new Promise(x => fulfill = x);
-        let timeoutId = setTimeout(onTimeoutDone, timeout);
-        return promise;
+  return async (success = false) => {
+    while (true) {
+      if (inflightRequests <= maxInflightRequests) {
+        break
+      }
 
-        function onTimeoutDone() {
-            page.removeListener('request', onRequestStarted);
-            page.removeListener('requestfinished', onRequestFinished);
-            page.removeListener('requestfailed', onRequestFinished);
-            fulfill();
-        }
+      // Poll rate means that no new requests have to be made in the past
+      // x milliseconds.
+      await new Promise(x => setTimeout(x, pollRate))
 
-        function onRequestStarted() {
-            ++inflight;
-            if (inflight > maxInflightRequests)
-                clearTimeout(timeoutId);
-        }
-
-        function onRequestFinished() {
-            if (inflight === 0)
-                return;
-            --inflight;
-            if (inflight === maxInflightRequests)
-                timeoutId = setTimeout(onTimeoutDone, timeout);
-        }
+      if ((timeout - pollRate) >= 0) {
+        // Decrement timeout if not already ended
+        timeout = timeout - pollRate
+      } else {
+        // Throw on timeout end
+        throw new Error('Timeout occurred while waiting for network idle')
+      }
     }
 
-    await Promise.all([
-        promises,
-        waitForNetworkIdle(page, 500, 0) // equivalent to 'networkidle0'
-    ]);
+    page.removeListener('request', onRequestStarted)
+    page.removeListener('requestfailed', onRequestFinished)
+    page.removeListener('requestfinished', onRequestFinished)
+  }
 }
 
-module.exports = wrappedWaitForNetworkIdle
+
+const waitForNetworkAndPromises = async (page, promises = [], timeout, pollRate, maxInflightRequests) => {
+  return await Promise.all([
+      ...promises,
+      waitForNetworkIdle(
+        page,
+        pollRate,
+        timeout,
+        pollRate,
+        maxInflightRequests
+      )
+  ])
+}
+
+module.exports = waitForNetworkAndPromises
