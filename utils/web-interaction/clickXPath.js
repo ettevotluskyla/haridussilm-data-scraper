@@ -52,7 +52,7 @@ const clickXPath = async (page, xpath, waitOpts) => {
   }
 
   // Wait for all functions to complete execution.
-  Promise.all([
+  await Promise.all([
     ...clickPromises,
     ...waitPromises
   ])
