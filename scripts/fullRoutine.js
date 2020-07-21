@@ -25,6 +25,10 @@ const customOptions = (async _ => {
                 ? (args['monitor'] == 'true' || args['monitor'] == true)
                 : false
 
+  const blockResources = args['block-resources']
+                ? (args['block-resources'] == 'true' || args['block-resources'] == true)
+                : false
+
   // Shard size gets overwritten later if sharding is disabled
   const shardSize = args['shardSize'] ? args['shardSize'] : 15
 
@@ -41,7 +45,8 @@ const customOptions = (async _ => {
     verbose: verbose,
     monitor: monitor,
     shardSize: shardSize,
-    maxConcurrency: maxConcurrency
+    maxConcurrency: maxConcurrency,
+    blockResources: blockResources
   }
 
   process.customOptions = customOptions
