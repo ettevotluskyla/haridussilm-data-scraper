@@ -8,49 +8,62 @@
 // Wait for network to be idle
 // That means that no new requests have been made in the past 500 ms.
 // Default timeout is 15 s, throws error if that ends before network idle.
-const waitForNetworkIdle = async (page, pollRate = 500, timeout = 15*1000, maxInflightRequests = 0) => {
-  let inflightRequests
-  const onRequestStarted = _ => (inflightRequests = inflightRequests + 1)
-  const onRequestFinished = _ => (inflightRequests = inflightRequests - 1)
+//
+// TODO: Think about a waiting timeout. E.g. if the network is not idle within
+// 15 seconds, throw an error. Maybe use Promise.race with setTimeout for this.
+const waitForNetworkIdle = async (page, timeout = 500, maxInflightRequests = 0) => {
+  if (process.customOptions.verbose) {
+    console.time('Network wait took ')
+  }
+  let inflightRequests = 0
+  let fulfill
+  let promise = new Promise(x => fulfill = x)
+
+  const onRequestStarted = _ => {
+    ++inflightRequests
+    if (inflightRequests > maxInflightRequests)
+      clearTimeout(timeoutId)
+  }
+
+  const onRequestFinished = _ => {
+    if (inflightRequests === 0) {
+      return
+    }
+
+    --inflightRequests
+
+    if (inflightRequests === maxInflightRequests)
+      timeoutId = setTimeout(onTimeoutDone, timeout);
+  }
+
+  const onTimeoutDone = _ => {
+    page.removeListener('request', onRequestStarted)
+    page.removeListener('requestfailed', onRequestFinished)
+    page.removeListener('requestfinished', onRequestFinished)
+
+    if (process.customOptions.verbose) {
+      console.timeEnd('Network wait took ')
+    }
+
+    fulfill()
+  }
+
+  let timeoutId = setTimeout(onTimeoutDone, timeout)
 
   page.on('request', onRequestStarted)
   page.on('requestfailed', onRequestFinished)
   page.on('requestfinished', onRequestFinished)
 
-  return async (success = false) => {
-    while (true) {
-      if (inflightRequests <= maxInflightRequests) {
-        break
-      }
-
-      // Poll rate means that no new requests have to be made in the past
-      // x milliseconds.
-      await new Promise(x => setTimeout(x, pollRate))
-
-      if ((timeout - pollRate) >= 0) {
-        // Decrement timeout if not already ended
-        timeout = timeout - pollRate
-      } else {
-        // Throw on timeout end
-        throw new Error('Timeout occurred while waiting for network idle')
-      }
-    }
-
-    page.removeListener('request', onRequestStarted)
-    page.removeListener('requestfailed', onRequestFinished)
-    page.removeListener('requestfinished', onRequestFinished)
-  }
+  return promise
 }
 
 
-const waitForNetworkAndPromises = async (page, promises = [], timeout, pollRate, maxInflightRequests) => {
+const waitForNetworkAndPromises = async (page, promises = [], timeout, maxInflightRequests) => {
   return await Promise.all([
       ...promises,
       waitForNetworkIdle(
         page,
-        pollRate,
         timeout,
-        pollRate,
         maxInflightRequests
       )
   ])
