@@ -13,7 +13,21 @@ const createShardCluster = async (shards) => {
     puppeteerOptions: {
       headless: headless,
       devtools: false,
-      dumpio: dumpio},
+      dumpio: dumpio,
+      defaultViewport: {
+        width: 1200,
+        height: 800
+      },
+      args: [
+        '--no-sandbox',
+        '--no-zygote',
+        '--disable-gpu',
+        '--disable-features=VizDisplayCompositor',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--window-size=1200,800'
+      ]
+    },
     monitor: monitor
   })
 

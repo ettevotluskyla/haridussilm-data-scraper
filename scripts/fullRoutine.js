@@ -55,7 +55,22 @@ const customOptions = (async _ => {
 })()
 
 const initPuppeteer = async headless => {
-  const browser = await puppeteer.launch({ 'headless': headless })
+  const browser = await puppeteer.launch({
+    headless: headless,
+    defaultViewport: {
+      width: 1200,
+      height: 800
+    },
+    args: [
+      '--no-sandbox',
+      '--no-zygote',
+      '--disable-gpu',
+      '--disable-features=VizDisplayCompositor',
+      '--disable-accelerated-2d-canvas',
+      '--no-first-run',
+      '--window-size=1200,800'
+    ]
+  })
 
   // Create a new page if headless, use default about:blank page if not
   let page
