@@ -7,7 +7,7 @@ const createShards = require('../routines/sharding/createShards')
 const createShardCluster = require('../routines/sharding/createShardCluster')
 const runShard = require('../routines/sharding/runShard')
 
-const options = (async _ => {
+const customOptions = (async _ => {
   const headless = args['headless']
                  ? (args['headless'] == 'true' || args['headless'] == true)
                  : false
@@ -65,27 +65,18 @@ const initPuppeteer = async headless => {
 }
 
 const fullRoutine = async _ => {
-  const { headless, shouldShard } = await options
-
-  /*
-  if (headless) {
-    console.log('Starting scraper in headless mode.')
-  }
-
-  if (shouldShard) {
-    console.log('Starting scraper with sharding enabled.')
-  }
-  */
+  const options = await customOptions
+  const { headless, shouldShard } = options
 
   console.log('Starting with options:\n')
-  console.log(await options)
+  console.log(options)
 
   const { browser, page } = await initPuppeteer(headless)
 
   // Loads the whole list of school names from the site
   const schoolNames = await loadSchoolNameList(page)
 
-  await page.waitFor(250)
+  await page.waitFor(500)
 
   const shardSize = shouldShard ? process.customOptions.shardSize : schoolNames.length
   const shards = await createShards(schoolNames, process.customOptions.shardSize)
