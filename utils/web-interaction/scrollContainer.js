@@ -22,7 +22,7 @@ const scrollContainer = async (page, elementXPath, opts) => {
 
   // In case title is undefined, exclude it from the logs.
   const logTitle = options.title ? `'${options.title}' ` : ''
-  
+
   if(process.customOptions.verbose) {
     console.log(`Started scrolling ${logTitle}container${(schoolListArray.length > 1) ? '(s)' : ''}.`)
   }
@@ -47,15 +47,14 @@ const scrollContainer = async (page, elementXPath, opts) => {
     // Default scroll count is 0, so if no scroll count is provided,
     // then no scrolling takes place.
     for (var j = 0; j < options.scrollCount; j++) {
-      const scrollPromise = page.evaluate(async (el, delta, direction) => {
+      const scrollPromise = page.evaluate((el, delta, direction) => {
         const scrollEvent = new Event('mousewheel')
 
         scrollEvent.wheelDelta = delta * direction
 
-        await el.dispatchEvent(scrollEvent)
-
-
+        el.dispatchEvent(scrollEvent)
       }, schoolList, delta, direction)
+
 
       await wrappedWaitForNetworkIdle(page, [
         scrollPromise,
@@ -79,7 +78,7 @@ const scrollContainer = async (page, elementXPath, opts) => {
     waitPromises = waitPromises.concat(page.waitForXPath(options.waitOpts.waitEndXPath))
   }
 
-  Promise.all([
+  await Promise.all([
     ...waitPromises
   ])
 

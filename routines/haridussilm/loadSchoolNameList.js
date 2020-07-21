@@ -40,7 +40,7 @@ const loadSchoolNameList = async page => {
   await scrollContainer(page, schoolListXpath, {
     direction: 'down',
     delta: 1000,
-    scrollCount: 0,
+    scrollCount: 30,
     title: schoolListTitle,
     waitBuffer: 0,
     waitEndDelay: 250
