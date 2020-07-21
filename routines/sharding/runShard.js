@@ -55,7 +55,7 @@ const runShard = async ({ page, data: shard}) => {
   const blockResources = process.customOptions.blockResources
 
   // Block unnecessary requests to speed up headless execution.
-  if (headless || blockRequests) {
+  if (headless || blockResources) {
     await page.setRequestInterception(true)
     page.on('request', request => {
       const requestUrl = request._url.split('?')[0].split('#')[0];
