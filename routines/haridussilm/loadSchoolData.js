@@ -29,12 +29,10 @@ const levels = {
 const textInsertPromise = async (page, text) => {
   const searchBox = await page.$x(`//div[@class = 'PopupSearch']/input`)
 
-  await Promise.all([
-    page.waitFor(5000)
-  ])
+  await page.evaluate((el, text) => { el.value = text }, searchBox[0], text)
 
   if(process.customOptions.verbose) {
-     console.log(`Inserted ${text} into search box for ${school}`)
+     console.log(`Inserted text into search box for ${text}`)
   }
 }
 
@@ -48,24 +46,15 @@ const searchList = async (page, school) => {
   ])
 
   // Type in the name of the school
-  if(process.customOptions.verbose) {
-    if(process.customOptions.verbose) {
-      console.log(`Typing: ${school}`)
-    }
-  }
-
-  await Promise.resolve(
-    wrappedWaitForNetworkIdle(page, [
-    //page.keyboard.type(school, { delay: 100 }),
+  await wrappedWaitForNetworkIdle(page, [
     textInsertPromise(page, school),
 
     // Wait for element to show up in list
     page.waitForXPath(`//*[@id="42"]/div[2]/div/div[1]/div[@title = "${school}"]`),
 
     // Wait for page to update
-    page.waitFor(10000)
+    page.waitFor(750)
   ])
-  )
 }
 
 // Select school in the school list
@@ -73,16 +62,18 @@ const selectSchool = async (page, school) => {
   // Using double quotes here to escape potential single quotes in the school name
   const xpath = `//*[@id="42"]/div[2]/div/div[1]/div[@title = "${school}"]`
 
-  Promise.resolve(wrappedWaitForNetworkIdle(page, [
-    searchList(page, school)
-  ]))
+  await wrappedWaitForNetworkIdle(page, [
+    searchList(page, school),
+
+    page.waitFor(1000)
+  ])
 
   // Select the school from the search results
   await wrappedWaitForNetworkIdle(page, [
     simClickXPath(page, xpath),
 
     // Wait for page to update in addition to having no active requests
-    page.waitFor(1500)
+    page.waitFor(1000)
   ])
 }
 
@@ -245,7 +236,7 @@ const loadSchoolData = async (page, schools) => {
       const classData = await loadClassData(page, schools[i])
 
       schoolData = schoolData[schools[i]] = classData
-      await page.waitFor(0)
+      await page.waitFor(250)
 
       if(process.customOptions.verbose) {
         console.timeEnd(`Collecting data for ${schools[i]} took: `)
