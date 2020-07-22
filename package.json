@@ -15,7 +15,8 @@
     "lowdb": "^1.0.0",
     "minimist": "^1.2.5",
     "puppeteer": "^5.0.0",
-    "puppeteer-cluster": "^0.21.0"
+    "puppeteer-cluster": "^0.21.0",
+    "uuid": "^8.2.0"
   },
   "scripts": {
     "start": "node scripts/fullRoutine.js",
