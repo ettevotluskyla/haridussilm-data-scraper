@@ -13,11 +13,10 @@ const { v4: uuid } = require('uuid');
 //
 // TODO: Think about a waiting timeout. E.g. if the network is not idle within
 // 15 seconds, throw an error. Maybe use Promise.race with setTimeout for this.
-const waitForNetworkIdle = async (page, timeout = 500, maxInflightRequests = 0, waitId) => {
-  let performanceId
+const waitForNetworkIdle = async (page, timeout = 500, maxInflightRequests = 0, performanceId) => {
 
   if (process.customOptions.verbose) {
-    performanceId = uuid()
+    performanceId = performanceId || uuid()
 
     performance.mark(`network-idle-${performanceId}-start`)
   }
@@ -82,14 +81,14 @@ const waitForNetworkIdle = async (page, timeout = 500, maxInflightRequests = 0, 
 }
 
 
-const waitForNetworkAndPromises = async (page, promises = [], timeout, maxInflightRequests, waitId) => {
+const waitForNetworkAndPromises = async (page, promises = [], timeout, maxInflightRequests, performanceId) => {
   return await Promise.all([
       ...promises,
       waitForNetworkIdle(
         page,
         timeout,
         maxInflightRequests,
-        waitId
+        performanceId
       )
   ])
 }
