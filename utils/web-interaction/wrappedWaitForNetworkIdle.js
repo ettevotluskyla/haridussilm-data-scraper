@@ -1,3 +1,6 @@
+const { PerformanceObserver, performance } = require('perf_hooks')
+const { v4: uuid } = require('uuid');
+
 // Workaround for wrapping promises that need to wait for network activity
 // that isn't a result of navigation to end before continuing.
 //
@@ -7,14 +10,18 @@
 
 // Wait for network to be idle
 // That means that no new requests have been made in the past 500 ms.
-// Default timeout is 15 s, throws error if that ends before network idle.
 //
 // TODO: Think about a waiting timeout. E.g. if the network is not idle within
 // 15 seconds, throw an error. Maybe use Promise.race with setTimeout for this.
-const waitForNetworkIdle = async (page, timeout = 500, maxInflightRequests = 0) => {
+const waitForNetworkIdle = async (page, timeout = 500, maxInflightRequests = 0, waitId) => {
+  let performanceId
+
   if (process.customOptions.verbose) {
-    console.time('Network wait took ')
+    performanceId = uuid()
+
+    performance.mark(`network-idle-${performanceId}-start`)
   }
+
   let inflightRequests = 0
   let fulfill
   let promise = new Promise(x => fulfill = x)
@@ -41,8 +48,25 @@ const waitForNetworkIdle = async (page, timeout = 500, maxInflightRequests = 0) 
     page.removeListener('requestfailed', onRequestFinished)
     page.removeListener('requestfinished', onRequestFinished)
 
+    // Send performance measurement of waiting for the network to the console.
     if (process.customOptions.verbose) {
-      console.timeEnd('Network wait took ')
+      performance.mark(`network-idle-${performanceId}-end`)
+      performance.measure(
+        `network-idle-${performanceId}`,
+        `network-idle-${performanceId}-start`,
+        `network-idle-${performanceId}-end`
+      )
+
+      obs = new PerformanceObserver((list, observer) => {
+        const entry = list.getEntries()[0]
+        console.log(`Wait for '${entry.name}' took`, entry.duration, `ms`)
+
+        performance.clearMarks(`network-idle-${performanceId}-start`)
+        performance.clearMarks(`network-idle-${performanceId}-end`)
+        observer.disconnect()
+      })
+
+      obs.observe({ entryTypes: ['measure'], buffered: false })
     }
 
     fulfill()
@@ -58,13 +82,14 @@ const waitForNetworkIdle = async (page, timeout = 500, maxInflightRequests = 0) 
 }
 
 
-const waitForNetworkAndPromises = async (page, promises = [], timeout, maxInflightRequests) => {
+const waitForNetworkAndPromises = async (page, promises = [], timeout, maxInflightRequests, waitId) => {
   return await Promise.all([
       ...promises,
       waitForNetworkIdle(
         page,
         timeout,
-        maxInflightRequests
+        maxInflightRequests,
+        waitId
       )
   ])
 }
