@@ -12,8 +12,8 @@
     "cli-progress": "^3.8.2",
     "googleapis": "39",
     "immutable": "^4.0.0-rc.12",
-    "lowdb": "^1.0.0",
     "minimist": "^1.2.5",
+    "nedb": "^1.8.0",
     "puppeteer": "^5.0.0",
     "puppeteer-cluster": "^0.21.0",
     "uuid": "^8.2.0"

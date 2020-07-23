@@ -101,7 +101,10 @@ const fullRoutine = async _ => {
   const shardSize = shouldShard ? process.customOptions.shardSize : schoolNames.length
   const shards = await createShards(schoolNames, process.customOptions.shardSize)
   console.log(`Loading school data for ${schoolNames.length} schools.`)
-  const shardCluster = await createShardCluster(shards)
+
+  await createShardCluster(shards)
+
+  
 }
 
 fullRoutine()

@@ -3,6 +3,8 @@ const simClickXPath = require('../../utils/web-interaction/simClickXPath')
 const wrappedWaitForNetworkIdle = require('../../utils/web-interaction/wrappedWaitForNetworkIdle')
 const switchToMenu = require('../../utils/web-interaction/switchToMenu')
 
+const { saveSchool, getSchools } = require('../data/datastore')
+
 // List of school years to look for
 // Taken from HaridusSilm
 const schoolYears = ['05/06', '06/07', '07/08', '08/09', '09/10', '10/11',
@@ -95,7 +97,7 @@ const deselectSchool = async (page, school, research=false) => {
     simClickXPath(page, xpath),
 
     // Wait for page to update in addition to having no active requests
-    page.waitFor(1500)
+    page.waitFor(1000)
   ])
 }
 
@@ -131,7 +133,7 @@ const selectClass = async (page, classID) => {
     simClickXPath(page, xpath),
 
     // Wait for page to update in addition to having no active requests
-    page.waitFor(1500)
+    page.waitFor(1000)
   ])
 }
 
@@ -143,7 +145,7 @@ const deselectClass = async (page, classID) => {
     simClickXPath(page, xpath),
 
     // Wait for page to update in addition to having no active requests
-    page.waitFor(1500)
+    page.waitFor(1000)
   ])
 }
 
@@ -193,21 +195,16 @@ const loadClassData = async (page, school) => {
   for (let i = 0; i < availableClasses.length; i++) {
     await selectClass(page, availableClasses[i])
 
+    // Find the available years for the current class
     const years = await getAvailableSchoolYears(page, school, availableClasses[i])
+
+    // Find the number of students per year for this class
     const students = await getStudentsForClass(page, school, availableClasses[i])
 
-    availableClasses.forEach(classID => {
-      classData[classID] = classData[classID] || {}
-
-      years.forEach(year => {
-        classData[classID][year] = students
-      })
+    years.forEach((year, index) => {
+      classData[availableClasses[i]] = classData[availableClasses[i]] || {}
+      classData[availableClasses[i]][year] = students[index]
     })
-
-
-    if(process.customOptions.verbose) {
-      console.log(students)
-    }
 
     await deselectClass(page, availableClasses[i])
   }
@@ -232,15 +229,25 @@ const loadSchoolData = async (page, schools) => {
         console.time(`Collecting data for ${schools[i]} took: `)
       }
 
-      //await page.waitFor(300 * 1000)
       const classData = await loadClassData(page, schools[i])
+      const currentTime = new Date()
 
-      schoolData = schoolData[schools[i]] = classData
-      await page.waitFor(250)
+      let school = {
+        name: schools[i],
+        classes: classData,
+        lastUpdate: currentTime.toISOString()
+      }
+
+      schoolData[school.name] = school
+
+      await saveSchool(school)
 
       if(process.customOptions.verbose) {
+        console.log(school)
         console.timeEnd(`Collecting data for ${schools[i]} took: `)
       }
+
+      await page.waitFor(250)
     }
 
     return schoolData
