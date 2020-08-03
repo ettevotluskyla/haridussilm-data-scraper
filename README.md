@@ -9,7 +9,7 @@ Note: While the repository is public, the program itself is meant for internal u
 
 ## Running the program
 
-## Defaul options
+## Default
 
 To run the program with sharding and monitoring enabled and use a shard size of 15 with 8 concurrent nodes, use the following command and options:
 
