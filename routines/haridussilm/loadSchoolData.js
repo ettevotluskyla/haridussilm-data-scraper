@@ -2,6 +2,7 @@ const clickXPath = require('../../utils/web-interaction/clickXPath')
 const simClickXPath = require('../../utils/web-interaction/simClickXPath')
 const wrappedWaitForNetworkIdle = require('../../utils/web-interaction/wrappedWaitForNetworkIdle')
 const switchToMenu = require('../../utils/web-interaction/switchToMenu')
+const scrollContainer = require('../../utils/web-interaction/scrollContainer')
 
 const { saveSchool, getSchools } = require('../data/datastore')
 
@@ -61,6 +62,8 @@ const searchList = async (page, school) => {
 
 // Select school in the school list
 const selectSchool = async (page, school) => {
+  await switchToMenu(page, 'Kooli nimi')
+
   // Using double quotes here to escape potential single quotes in the school name
   const xpath = `//*[@id="42"]/div[2]/div/div[1]/div[@title = "${school}"]`
 
@@ -83,6 +86,8 @@ const selectSchool = async (page, school) => {
 // Setting research to true will reenter the school name in the search box before
 // clicking the item. Defaults to false to improve performance.
 const deselectSchool = async (page, school, research=false) => {
+  await switchToMenu(page, 'Kooli nimi')
+
   // Using double quotes here to escape potential single quotes in the school name
   const xpath = `//*[@id="42"]/div[2]/div/div[1]/div[@title = "${school}"]`
 
@@ -181,11 +186,39 @@ const getStudentsForClass = async (page, school, classID) => {
   return Promise.all(students)
 }
 
+const getCounty = async (page) => {
+  await switchToMenu(page, "Maakond")
+
+  const xpath = `//*[@id="44"]/div[2]/div/div[1]/div[@class = "QvOptional_LED_CHECK_363636"]`
+  const elements = await page.$x(xpath)
+
+  return page.evaluate(el => {return el.textContent}, elements[0])
+}
+
+const getMunicipality = async (page) => {
+  await switchToMenu(page, "Omavalitsus")
+
+  const listXpath = `//*[@id="43"]/div[2]/div`
+  const listItemXpath = `//*[@id="43"]/div[2]/div/div[1]/div[@class = "QvOptional_LED_CHECK_363636"]`
+
+  const listTitle = "Omavalitsus"
+  await scrollContainer(page, listXpath, {
+    direction: 'down',
+    delta: 1000,
+    scrollCount: 5,
+    title: listTitle,
+    waitBuffer: 0,
+    waitEndDelay: 250
+  })
+
+  const elements = await page.$x(listItemXpath)
+
+  return page.evaluate(el => {return el.textContent}, elements[0])
+}
+
 // page = frame to take actions in
 // school = the name of the school to search in
 const loadClassData = async (page, school) => {
-  await selectSchool(page, school)
-
   await switchToMenu(page, 'Klass')
 
   const availableClasses = await getAvailableClasses(page, school)
@@ -209,9 +242,6 @@ const loadClassData = async (page, school) => {
     await deselectClass(page, availableClasses[i])
   }
 
-  await switchToMenu(page, 'Kooli nimi')
-  await deselectSchool(page, school)
-
   return classData
 }
 
@@ -229,12 +259,21 @@ const loadSchoolData = async (page, schools) => {
         console.time(`Collecting data for ${schools[i]} took: `)
       }
 
+      await selectSchool(page, schools[i])
+
+      const county = await getCounty(page, schools[i])
+      const municipality = await getMunicipality(page, schools[i])
       const classData = await loadClassData(page, schools[i])
+
+      await deselectSchool(page, schools[i])
+
       const currentTime = new Date()
 
       let school = {
         name: schools[i],
         classes: classData,
+        county: county,
+        municipality: municipality,
         lastUpdate: currentTime.toISOString()
       }
 

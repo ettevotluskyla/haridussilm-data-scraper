@@ -24,6 +24,10 @@ const addSchools = async schools => {
   }
 }
 
+const getSchools = async _ => {
+  return undefined
+}
+
 module.exports = {
   saveSchool: addSchool,
   saveSchools: addSchools,
