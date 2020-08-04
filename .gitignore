@@ -102,3 +102,7 @@ dist
 
 # TernJS port file
 .tern-port
+
+# Google credentials
+credentials/google-sheets/credentials.json
+credentials/google-sheets/token.json
