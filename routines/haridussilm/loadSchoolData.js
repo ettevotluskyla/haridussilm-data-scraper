@@ -285,15 +285,12 @@ const loadSchoolData = async (page, schools) => {
 
       await deselectSchool(page, schools[i])
 
-      const currentTime = new Date()
-
       let school = {
         name: schools[i],
         classes: classData,
         county: county,
         municipality: municipality,
         languages: languages,
-        lastUpdate: currentTime.toISOString()
       }
 
       schoolData[school.name] = school

@@ -1,7 +1,7 @@
 const { Cluster } = require('puppeteer-cluster');
 const runShard = require('./runShard')
 
-const createShardCluster = async (shards) => {
+const runShardCluster = async (shards) => {
   const { maxConcurrency, headless, monitor} = process.customOptions
   const dumpio = process.customOptions.verbose
 
@@ -46,4 +46,4 @@ const createShardCluster = async (shards) => {
   await cluster.close()
 }
 
-module.exports = createShardCluster
+module.exports = runShardCluster

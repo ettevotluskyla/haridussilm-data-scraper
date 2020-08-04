@@ -1,3 +1,5 @@
+const { getSchools } = require('../../routines/data/datastore')
+
 const createChunks = (array, chunkSize) => {
     let chunks = []
 
@@ -12,15 +14,25 @@ const createChunks = (array, chunkSize) => {
 const createShards = async (schoolNames, shardSize=30) => {
   let shards = []
 
-  const chunkedNames = createChunks(schoolNames, shardSize)
+  let names = schoolNames
+
+  if (process.customOptions.useCache) {
+    const cachedSchools = await getSchools()
+
+    const cachedNames = cachedSchools.map(school => school.name)
+
+    names = schoolNames.filter(el => cachedNames.indexOf(el) == -1)
+  }
+
+  const chunkedNames = createChunks(names, shardSize)
 
   for (let i = 0; i < chunkedNames.length; i++) {
     shards[`${i}`] = {
       schools: chunkedNames[i]
     }
-
-    console.log(chunkedNames[i])
   }
+
+  console.log(`Created ${chunkedNames.length} shards with ${names.length} schools.`)
 
   return shards
 }

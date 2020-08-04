@@ -78,10 +78,6 @@ const runShard = async ({ page, data: shard}) => {
 
   const schoolData = await loadSchoolData(page, schools)
 
-  if(process.customOptions.verbose) {
-    console.log(schoolData)
-  }
-
   await page.waitFor(0)
 }
 

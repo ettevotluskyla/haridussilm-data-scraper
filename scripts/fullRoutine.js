@@ -4,7 +4,7 @@ const args = require('minimist')(process.argv.slice(2))
 const loadSchoolNameList = require('../routines/haridussilm/loadSchoolNameList')
 const loadSchoolData = require('../routines/haridussilm/loadSchoolData')
 const createShards = require('../routines/sharding/createShards')
-const createShardCluster = require('../routines/sharding/createShardCluster')
+const runShardCluster = require('../routines/sharding/runShardCluster')
 const runShard = require('../routines/sharding/runShard')
 
 const customOptions = (async _ => {
@@ -29,6 +29,10 @@ const customOptions = (async _ => {
                 ? (args['block-resources'] == 'true' || args['block-resources'] == true)
                 : false
 
+  const useCache = args['use-cache']
+                ? (args['use-cache'] == 'true' || args['use-cache'] == true)
+                : false
+
   // Shard size gets overwritten later if sharding is disabled
   const shardSize = args['shardSize'] ? args['shardSize'] : 15
 
@@ -46,7 +50,8 @@ const customOptions = (async _ => {
     monitor: monitor,
     shardSize: shardSize,
     maxConcurrency: maxConcurrency,
-    blockResources: blockResources
+    blockResources: blockResources,
+    useCache: useCache
   }
 
   process.customOptions = customOptions
@@ -100,11 +105,10 @@ const fullRoutine = async _ => {
 
   const shardSize = shouldShard ? process.customOptions.shardSize : schoolNames.length
   const shards = await createShards(schoolNames, process.customOptions.shardSize)
-  console.log(`Loading school data for ${schoolNames.length} schools.`)
 
-  await createShardCluster(shards)
+  await runShardCluster(shards)
 
-  
+
 }
 
 fullRoutine()

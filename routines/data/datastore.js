@@ -1,18 +1,13 @@
-// Valikud nimekirjas:
-//
-// QvExcluded - ei saa valida seda valikut
-// QVOptional - saab valida seda valikut
-//
-// Selle järgi saab aru, mis maakonnas ja omavalitsuses kool asub
-// ning mis keeli koolis räägitakse.
-
-const Datastore = require('nedb')
-const db = new Datastore({ filename: 'data/school-db', autoload: true })
+const { AsyncNedb } = require('nedb-async')
+const db = new AsyncNedb({
+  filename: 'data/schools.db',
+  timestampData: true,
+  autoload: true
+})
 
 const addSchool = async school => {
   try {
-    console.log(school)
-    await db.insert(school)
+    await db.asyncUpdate({name: school}, school, { upsert: true })
   } catch (e) {
     throw e
   }
@@ -24,12 +19,22 @@ const addSchools = async schools => {
   }
 }
 
+const getSchool = async school => {
+  return await db.asyncFindOne({ name: school })
+}
+
 const getSchools = async _ => {
-  return undefined
+  return await db.asyncFind({})
+}
+
+const compact = async _ => {
+  await db.persistence.compactDatafile()
 }
 
 module.exports = {
   saveSchool: addSchool,
   saveSchools: addSchools,
-  getSchools: getSchools
+  getSchool: getSchool,
+  getSchools: getSchools,
+  compact: compact
 }
