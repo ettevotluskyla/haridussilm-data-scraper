@@ -216,6 +216,23 @@ const getMunicipality = async (page) => {
   return page.evaluate(el => {return el.textContent}, elements[0])
 }
 
+const getLanguages = async (page) => {
+  await switchToMenu(page, "Õppekeel")
+
+  let languages = []
+
+  const xpath = `//*[@id="49"]/div[2]/div/div[1]/div[@class = "QvOptional_LED_CHECK_363636"]/div[2]/div[2]`
+
+  const elements = await page.$x(xpath)
+
+  for (let i = 0; i < elements.length; i++) {
+    const language = await page.evaluate(el => {return el.textContent}, elements[i])
+    languages = languages.concat(language)
+  }
+
+  return languages
+}
+
 // page = frame to take actions in
 // school = the name of the school to search in
 const loadClassData = async (page, school) => {
@@ -264,6 +281,7 @@ const loadSchoolData = async (page, schools) => {
       const county = await getCounty(page, schools[i])
       const municipality = await getMunicipality(page, schools[i])
       const classData = await loadClassData(page, schools[i])
+      const languages = await getLanguages(page)
 
       await deselectSchool(page, schools[i])
 
@@ -274,6 +292,7 @@ const loadSchoolData = async (page, schools) => {
         classes: classData,
         county: county,
         municipality: municipality,
+        languages: languages,
         lastUpdate: currentTime.toISOString()
       }
 
