@@ -71,6 +71,7 @@ typings/
 # dotenv environment variables file
 .env
 .env.test
+.env.example
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -102,7 +103,3 @@ dist
 
 # TernJS port file
 .tern-port
-
-# Google credentials
-credentials/google-sheets/credentials.json
-credentials/google-sheets/token.json
