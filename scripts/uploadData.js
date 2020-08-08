@@ -1,3 +1,9 @@
 const transfer = require('../routines/google-sheets/transferDataToSheets')
+const { getSchools } = require('../routines/data/datastore')
 
-transfer()
+const uploadData = async _ => {
+  schools = await getSchools()
+  await transfer(schools)
+}
+
+uploadData()
