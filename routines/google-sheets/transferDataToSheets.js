@@ -3,6 +3,7 @@
 
 const getSheets = require('../data/googleSheets')
 const { fromA1, toA1 } = require('../../utils/sheets/A1Conversion')
+const { DateTime } = require('luxon')
 
 let SHEET_ID = process.env.SHEET_ID
 
@@ -12,14 +13,18 @@ const years = ['05/06', '06/07', '07/08', '08/09', '09/10', '10/11',
                      '17/18', '18/19', '19/20']
 
 const headerMap = {
-  'name': 'Kooli nimi',
-  'county': 'Maakond',
-  'municipality': 'Omavalitsus',
-  'languages': 'Õppekeeled',
-  'updatedAt': 'Uuendamise aeg'
+  name: 'Kooli nimi',
+  county: 'Maakond',
+  municipality: 'Omavalitsus',
+  languages: 'Õppekeeled',
+  updatedAt: 'Uuendamise aeg',
+  totalStudents: 'Koolis kokku',
+  totalElementary: 'AK kokku',
+  totalMiddle: 'PK kokku',
+  totalHigh: 'G kokku'
 }
 
-const headerRange = sheet => `${sheet}!A1:R2`
+const headerRange = sheet => `${sheet}!A1:U2`
 
 // This may not be needed, but I've kept it as reference.
 let cellCoordinates = {
@@ -41,7 +46,11 @@ let cellCoordinates = {
     'G11': undefined,
     'G12': undefined,
   },
-  updatedAt: undefined
+  updatedAt: undefined,
+  totalStudents: undefined,
+  totalElementary: undefined,
+  totalMiddle: undefined,
+  totalHigh: undefined
 }
 
 const getRows = async (sheets, range) => {
@@ -56,6 +65,7 @@ const getRows = async (sheets, range) => {
 const createRow = (school, range) => {
   const parts = range.split('!')
   const sheet = parts[0]
+  const year = sheet
   const [ start, end ] = parts[1].split(':')
 
   const length = fromA1(end).column+1 - fromA1(start).column
@@ -68,7 +78,7 @@ const createRow = (school, range) => {
   classes.forEach(id => {
     if (school.classes[id]) {
       const index = cellCoordinates.classes[id].col
-      row[index] = school.classes[id]['05/06']
+      row[index] = school.classes[id][year]
     }
   })
 
@@ -80,6 +90,58 @@ const createRow = (school, range) => {
 
       if (Array.isArray(school[variable])) {
         value = school[variable].toString()
+      }
+
+      // Format the date in the DB into something that Google Sheets can parse.
+      if (variable == 'updatedAt') {
+        const updatedAt = DateTime.fromJSDate(school[variable])
+                                  .toFormat('MMM dd, yyyy HH:mm:ss')
+                                  .toString()
+        value = updatedAt
+      }
+
+      if (variable == 'totalElementary') {
+        const headers = ['1', '2', '3', '4']
+        const cells = headers.map(_class => {
+          return toA1(cellCoordinates.classes[_class].col, fromA1(start).row)
+        })
+
+        const formula = `=SUM(${cells.toString()})`
+
+        value = formula
+      }
+
+      if (variable == 'totalMiddle') {
+        const headers = ['5', '6', '7', '8', '9']
+        const cells = headers.map(_class => {
+          return toA1(cellCoordinates.classes[_class].col, fromA1(start).row)
+        })
+
+        const formula = `=SUM(${cells.toString()})`
+
+        value = formula
+      }
+
+      if (variable == 'totalHigh') {
+        const headers = ['G10', 'G11', 'G12']
+        const cells = headers.map(_class => {
+          return toA1(cellCoordinates.classes[_class].col, fromA1(start).row)
+        })
+
+        const formula = `=SUM(${cells.toString()})`
+
+        value = formula
+      }
+
+      if (variable == 'totalStudents') {
+        const headers = Object.keys(cellCoordinates.classes)
+        const cells = headers.map(_class => {
+          return toA1(cellCoordinates.classes[_class].col, fromA1(start).row)
+        })
+
+        const formula = `=SUM(${cells.toString()})`
+
+        value = formula
       }
 
       row[index] = value
@@ -209,7 +271,7 @@ const transfer = async schools => {
     return a.name.localeCompare(b.name, 'en', { sensitivity: 'base' });
   })
 
-  const chunkedSchools = createChunks(sortedSchools, 25)
+  const chunkedSchools = createChunks(sortedSchools, 300)
 
   // Run through all the schoolyears.
   for (let i = 0; i < years.length; i++) {
@@ -221,14 +283,14 @@ const transfer = async schools => {
       const chunk = chunkedSchools[j]
       const startIndex = sortedSchools.indexOf(chunk[0])
 
-      console.time(`Chunk ${j}/${chunkedSchools.length} for schoolyear ${year} uploaded`)
+      console.time(`Chunk ${j+1}/${chunkedSchools.length} for schoolyear ${year} uploaded`)
 
       await Promise.all([
         uploadChunk(chunk, year, startIndex),
         waitFor(500)
       ])
 
-      console.timeEnd(`Chunk ${j}/${chunkedSchools.length} for schoolyear ${year} uploaded`)
+      console.timeEnd(`Chunk ${j+1}/${chunkedSchools.length} for schoolyear ${year} uploaded`)
     }
   }
 }
